@@ -31,22 +31,23 @@ wordbits_351a = ['SH0', 'SH1', 'SH2', 'SH3', 'SH4', 'RB1', 'RB2', 'RB3', 'RB4', 
 
 # -------------------------------------------------------------------------------------
 
-# Arquivos Base
-modelo_ied = 'IED751'
-drive_SEL = f'{modelo_ied}_CMD_SEL.xml'
-programa_comandos = f'{modelo_ied}_COMANDOS.xml'
-lista_wordbits = wordbits_padrao
-
-# -------------------------------------------------------------------------------------
+lista_modelo_ieds = []
 
 # Copia os arquivos
-copiar_arquivos(arquivo_planilha_base, drive_SEL, '_CMD_SEL.xml')
+for a in range(0, len(planilha_arquivos['nome'])):
+
+    modelo_ied = planilha_arquivos['ied'][a]
+    drive_SEL = f'{modelo_ied}_CMD_SEL.xml'
+    programa_comandos = f'{modelo_ied}_COMANDOS.xml'
+
+    copiar_arquivos(planilha_arquivos['nome'][a], drive_SEL, '_CMD_SEL.xml')
+    copiar_arquivos(planilha_arquivos['nome'][a], programa_comandos, '_COMANDOS.xml')
+
+    lista_modelo_ieds.append(modelo_ied)  # Armazena o modelo dos IEDs para ser usado na renomeacao dos arquivos
+
+# Feedback da copia dos arquivos
 print('Copia dos arquivos Protocolo SEL: Finalizado')
-
-copiar_arquivos(arquivo_planilha_base, programa_comandos, '_COMANDOS.xml')
 print('Copia dos Programas de Monitoramento dos Comandos: Finalizado')
-
-# Tempo de espera para a geração dos arquivos
 print("Aguardando geração dos arquivos XML...")
 
 # -------------------------------------------------------------------------------------
@@ -57,7 +58,17 @@ for a in range(0, len(nomes_arquivos)):
     # Ajuste dos arquivos "_CMD_SEL.xml"
     ajuste = EditorXML(nomes_arquivos[a])  # Instancia o editor do drive Protocolo SEL
     ajuste.editar_ip(planilha_arquivos['ip'][a])  # Altera o IP conforme a planilha
-    ajuste.substituir_texto(modelo_ied, planilha_arquivos['nome'][a])  # Altera o nome do arquivo
+    ajuste.substituir_texto(lista_modelo_ieds[a], planilha_arquivos['nome'][a])  # Altera o nome do arquivo
+
+    # Selecao da lista de wordbits conforme modelo do IED
+    if planilha_arquivos['ied'][a] == 'IED311C':
+        lista_wordbits = wordbits_311c
+    elif planilha_arquivos['ied'][a] == 'IED351A':
+        lista_wordbits = wordbits_351a
+    elif planilha_arquivos['ied'][a] == 'IED751A':
+        lista_wordbits = wordbits_751a
+    else:
+        lista_wordbits = wordbits_padrao
 
     # Ativacao das Wordbits
     for w in lista_wordbits:
@@ -65,7 +76,7 @@ for a in range(0, len(nomes_arquivos)):
 
     # Ajuste dos arquivos "_COMANDOS.xml"
     programa_comandos = EditorXML(nomes_programas[a])
-    programa_comandos.substituir_texto(modelo_ied, planilha_arquivos['nome'][a])
+    programa_comandos.substituir_texto(lista_modelo_ieds[a], planilha_arquivos['nome'][a])
 
     print(f'Ajustado: {planilha_arquivos["nome"][a]}')
 
